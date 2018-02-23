@@ -7,8 +7,8 @@
 * mom re kid T1T2 for dropbox.n1514.MGJS.07-25-2016
 
 *** Loading data provided by Peng
-cd ~/dropbox/research/hlthineq/mgah/mgacm/mgacm-work/mgacm-anly
-use mgacm-wfds-t1-data, replace
+cd ~/dropbox/research/hlthineq/mgah/ceah/ceah-work
+use ceah-wfds-t1-data, replace
 
 *** ID variables
 rename (LSUID kidid) (mid cid)
@@ -63,7 +63,7 @@ save `d1', replace
 
 
 *** Merging T2 data
-use mgacm-wfds-t2-data, replace
+use ceah-wfds-t2-data, replace
 
 *** ID variable
 
@@ -132,4 +132,4 @@ order mid t2 mnch mage1 mmar1 mmar2 minc1 minc2 mwht medu srh1 srh2 ///
   dep1 dep2 adl1 adl2 aedu xedu nedu afem amar asee atlk aliv
 keep mid-aliv
 
-save mgacm-wfds-data, replace
+save ceah-wfds-data, replace
