@@ -13,29 +13,23 @@ eststo clear
 
 
 
-*** Primary analysis
-ologit srh1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv aedu
-eststo srh1
 
-ologit srh2 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
-  aedu srh1
-eststo srh2
-  
+*** Primary analysis  
 reg dep1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv aedu
 eststo dep1
 
 reg dep2 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
-  aedu dep1
+  aedu dep1 if t2nm
 eststo dep2
   
 logit adl1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv aedu
 eststo adl1
 
 logit adl2 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
-  aedu adl1
+  aedu adl1 if t2nm
 eststo adl2
 
-esttab srh1 srh2 dep1 dep2 adl1 adl2 using Table2.csv, b(%5.3f) se(%5.3f) ///
+esttab dep1 dep2 adl1 adl2 using Table2.csv, b(%5.3f) se(%5.3f) ///
   nobase nonum
 
   

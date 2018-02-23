@@ -132,4 +132,9 @@ order mid t2 mnch mage1 mmar1 mmar2 minc1 minc2 mwht medu srh1 srh2 ///
   dep1 dep2 adl1 adl2 aedu xedu nedu afem amar asee atlk aliv
 keep mid-aliv
 
+*** Selecting analysis sample and flagging wave 2 sample
+keep if !mi(dep1, adl1)
+keep if !mi(minc1, medu, mwht)
+gen t2nm = ( !mi(dep2, adl2) )
+
 save ceah-wfds-data, replace
