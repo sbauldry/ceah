@@ -8,7 +8,24 @@ use mgacm-wfds-data, replace
 eststo clear
 
 
-*** Descriptive statistics
+*** Descriptive statistics (Table 1)
+tab mmar1, gen(mmr)
+tab medu, gen(med)
+
+foreach x of varlist dep1 dep2 adl1 adl2 mage1 mwht mmr1-mmr3 med1-med3 ///
+  minc1 mnch afem amar aliv asee atlk aedu {
+  qui sum `x'
+  dis "`x'  " %5.2f r(mean) "  " %5.2f r(sd) "  " %2.0f r(min) "-" %2.0f r(max)
+}
+
+
+*** Auxiliary descriptive information
+corr dep1 dep2 adl1 adl2
+corr dep1 adl1 aedu
+corr mage1 mwhy mmr1-mmr3 med1-med3 minc1 
+corr mnch afem amar aliv asee atlk aedu
+
+
 
 
 
@@ -30,7 +47,7 @@ logit adl2 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
 eststo adl2
 
 esttab dep1 dep2 adl1 adl2 using Table2.csv, b(%5.3f) se(%5.3f) ///
-  nobase nonum
+  nobase nonum replace
 
   
 *** Post-estimation for depression and ADL at T1  
