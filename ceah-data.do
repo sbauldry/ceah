@@ -26,7 +26,7 @@ rename (numalive) (mnch)
 recode f1 (1 = 1) (4 6 = 2) (5 = 3), gen(mmar1)
 gen mage1 = 2002 - g1y
 recode mastrace (0 = 1) (1/23 = 0), gen(mwht)
-recode g3 (9 = .) (1 2 = 0) (3 4 5 = 1) (6 7 = 2), gen(medu)
+recode g3 (9 = .) (1 2 = 0) (3 = 1) (4 5 = 2) (6 7 = 3), gen(medu)
 recode income2 (1 = .5) (2 = 1.5) (3 = 2.5) (4 = 3.5) (5 = 4.5) (6 = 6.25) ///
   (7 = 10), gen(minc1)
 
@@ -137,4 +137,4 @@ keep if !mi(dep1, adl1)
 keep if !mi(minc1, medu, mwht)
 gen t2nm = ( !mi(dep2, adl2) )
 
-save ceah-wfds-data, replace
+save ceah-data, replace

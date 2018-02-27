@@ -3,56 +3,53 @@
 *** Date: February 1, 2018
 
 *** Set working directory and load data
-cd ~/dropbox/research/hlthineq/mgah/mgacm/mgacm-work/mgacm-anly
-use mgacm-wfds-data, replace
-eststo clear
+cd ~/dropbox/research/hlthineq/mgah/ceah/ceah-work
+use ceah-data, replace
 
 
 *** Descriptive statistics (Table 1)
 tab mmar1, gen(mmr)
 tab medu, gen(med)
 
-foreach x of varlist dep1 dep2 adl1 adl2 mage1 mwht mmr1-mmr3 med1-med3 ///
+foreach x of varlist dep1 dep2 adl1 adl2 mage1 mwht mmr1-mmr3 med1-med4 ///
   minc1 mnch afem amar aliv asee atlk aedu {
   qui sum `x'
   dis "`x'  " %5.2f r(mean) "  " %5.2f r(sd) "  " %2.0f r(min) "-" %2.0f r(max)
 }
 
 
-*** Auxiliary descriptive information
+*** Auxiliary descriptive statistics
 corr dep1 dep2 adl1 adl2
 corr dep1 adl1 aedu
 corr mage1 mwhy mmr1-mmr3 med1-med3 minc1 
 corr mnch afem amar aliv asee atlk aedu
 
 
-
-
-
-
-
-*** Primary analysis  
-reg dep1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv aedu
+*** Regression models (Table 2)
+reg dep1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv aedu, ///
+  vce(robust)
 eststo dep1
 
 reg dep2 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
-  aedu dep1 if t2nm
+  aedu dep1 if t2nm, vce(robust)
 eststo dep2
   
-logit adl1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv aedu
+logit adl1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
+  aedu, vce(robust)
 eststo adl1
 
 logit adl2 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
-  aedu adl1 if t2nm
+  aedu adl1 if t2nm, vce(robust)
 eststo adl2
 
-esttab dep1 dep2 adl1 adl2 using Table2.csv, b(%5.3f) se(%5.3f) ///
-  nobase nonum replace
-
+esttab dep1 dep2 adl1 adl2 using ~/desktop/Table2.csv, replace b(%5.3f) ///
+  se(%5.3f) nobase nonum 
   
-*** Post-estimation for depression and ADL at T1  
+
+*** Post-estimation for depression and ADL at T1 (Figure 1)
 tempfile g1 g2
-qui reg dep1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv aedu
+qui reg dep1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
+  aedu, vce(robust)
 margins , at(aedu = (0(0.1)1))
 marginsplot , ytit("predicted value of depression") ylab(1(0.2)2, angle(h) ///
   grid gstyle(dot)) xlab(, grid gstyle(dot)) recastci(rarea) ///
@@ -60,7 +57,7 @@ marginsplot , ytit("predicted value of depression") ylab(1(0.2)2, angle(h) ///
   xtit("proportion of children with BA+") saving(`g1')
 
 qui logit adl1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
-  aedu
+  aedu, vce(robust)
 margins , at(aedu = (0(0.1)1))
 marginsplot , ytit("predicted probability of ADL") ylab(0(0.1)0.6, angle(h) ///
   grid gstyle(dot)) xlab(, grid gstyle(dot)) recastci(rarea) ///
@@ -68,42 +65,25 @@ marginsplot , ytit("predicted probability of ADL") ylab(0(0.1)0.6, angle(h) ///
   xtit("proportion of children with BA+") saving(`g2')
   
 graph combine "`g1'" "`g2'"
-graph export Fig1.pdf, replace
+graph export ~/desktop/Fig1.pdf, replace
 
 
 *** Auxiliary analyses
 * 1. predictors of proportion of children with BA+
 reg aedu mage1 mwht i.mmar1 i.medu minc1 mnch
 
-* 2. correlations among family context measures
-corr aedu afem amar asee atlk aliv
 
-* 3. alternative measures of children's education
-ologit srh1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv xedu
-ologit srh1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv nedu
-
+* 2. alternative measures of children's education
 reg dep1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv xedu
 reg dep1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv nedu
 
 logit adl1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv xedu
 logit adl1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv nedu
 
-* 4. interactions
-ologit srh1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
-  aedu i.medu#c.aedu
-  
-ologit srh1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
-  aedu c.mnch#c.aedu
-  
-ologit srh1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
-  aedu c.asee#c.aedu
-  
-ologit srh1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
-  aedu c.atlk#c.aedu
-  
-ologit srh1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
-  aedu c.aliv#c.aedu
-  
+
+* 3. interactions
+reg dep1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
+  aedu i.mwht#c.aedu
   
 reg dep1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
   aedu i.medu#c.aedu
@@ -120,7 +100,10 @@ reg dep1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
 reg dep1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
   aedu c.aliv#c.aedu
   
-  
+
+logit adl1 mage1 i.mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
+  aedu i.mwht#c.aedu
+
 logit adl1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
   aedu i.medu#c.aedu
   
@@ -137,5 +120,14 @@ logit adl1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
   aedu c.aliv#c.aedu
 
 
+* 4. collinearity diagnostics
+qui reg dep2 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
+  aedu dep1 adl1
+vif
 
+
+* 5. check unusual relationship between mother's education and ADL
+logit adl1 i.medu
+logit adl1 i.medu aedu
+logit adl1 i.medu aedu minc1 
 
