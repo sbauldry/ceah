@@ -51,18 +51,19 @@ tempfile g1 g2
 qui reg dep1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
   aedu, vce(robust)
 margins , at(aedu = (0(0.1)1))
-marginsplot , ytit("predicted value of depression") ylab(1(0.2)2, angle(h) ///
-  grid gstyle(dot)) xlab(, grid gstyle(dot)) recastci(rarea) ///
-  ciopts(fintensity(30) lwidth(none)) title("Depression") ///
+marginsplot , ytit("predicted value of symptoms") ylab(1(0.2)2, angle(h) ///
+  grid gstyle(dot)) xlab(, grid gstyle(dot)) recastci(rarea)             ///
+  ciopts(fintensity(30) lwidth(none)) title("Depressive Symptoms")       ///
   xtit("proportion of children with BA+") saving(`g1')
 
 qui logit adl1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
   aedu, vce(robust)
 margins , at(aedu = (0(0.1)1))
-marginsplot , ytit("predicted probability of ADL") ylab(0(0.1)0.6, angle(h) ///
-  grid gstyle(dot)) xlab(, grid gstyle(dot)) recastci(rarea) ///
-  ciopts(fintensity(30) lwidth(none)) title("ADL") ///
-  xtit("proportion of children with BA+") saving(`g2')
+marginsplot , ytit("predicted probability of limitation")                  ///
+  ylab(0(0.1)0.6, angle(h) grid gstyle(dot)) xlab(, grid gstyle(dot))      ///
+  recastci(rarea) ciopts(fintensity(30) lwidth(none))                      ///
+  title("Any Activity Limitation") xtit("proportion of children with BA+") ///
+  saving(`g2')
   
 graph combine "`g1'" "`g2'"
 graph export ~/desktop/Fig1.pdf, replace
