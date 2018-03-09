@@ -107,6 +107,9 @@ egen aedu  = mean(cedu), by(mid)
 egen xedu  = max(cedu), by(mid)
 egen nedu  = min(cedu), by(mid)
 
+egen fmedu = mean(cedu) if cfem == 1, by(mid)
+egen mledu = mean(cedu) if cfem == 0, by(mid)
+
 egen afem  = mean(cfem), by(mid)
 egen amar  = mean(cmar), by(mid)
 egen asee  = mean(csee), by(mid)
@@ -119,6 +122,9 @@ lab var aedu  "pr of children with BA+"
 lab var xedu  "at least one child with BA+"
 lab var nedu  "all children with BA+"
 
+lab var fmedu "pr of daughters with BA+"
+lab var mledu "pr of sons with BA+"
+
 lab var afem  "pr of children female"
 lab var amar  "pr of children married"
 lab var asee  "avg frequency of visit"
@@ -129,7 +135,7 @@ lab var aliv  "pr of children live within 2 hours"
 egen pone = tag(mid)
 keep if pone
 order mid t2 mnch mage1 mmar1 mmar2 minc1 minc2 mwht medu srh1 srh2 ///
-  dep1 dep2 adl1 adl2 aedu xedu nedu afem amar asee atlk aliv
+  dep1 dep2 adl1 adl2 aedu xedu nedu fmedu mledu afem amar asee atlk aliv
 keep mid-aliv
 
 *** Selecting analysis sample and flagging wave 2 sample

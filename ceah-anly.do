@@ -112,6 +112,9 @@ reg dep1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
 reg dep1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
   aedu c.aliv#c.aedu, vce(robust)
   
+reg dep1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
+  aedu c.afem#c.aedu, vce(robust)
+  
 
 logit adl1 mage1 i.mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
   aedu i.mwht#c.aedu, vce(robust)
@@ -130,6 +133,9 @@ logit adl1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
   
 logit adl1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
   aedu c.aliv#c.aedu, vce(robust)
+  
+logit adl1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
+  aedu c.afem#c.aedu, vce(robust)
 
 
 * 4. collinearity diagnostics
@@ -168,5 +174,15 @@ logit adl2 mage1 mwht i.mmar1 i.medu minc1 mnch i.cfem amar asee atlk aliv ///
   aedu adl1 if t2nm, vce(robust)
   
   
-  
 * 8. check for difference in highest educated son vs highest educated daughter
+reg dep1 mage1 mwht i.mmar1 i.medu minc1 mnch amar asee atlk aliv fmedu ///
+  if cfem == 1, vce(robust)
+  
+reg dep1 mage1 mwht i.mmar1 i.medu minc1 mnch amar asee atlk aliv mledu ///
+  if cfem == 1, vce(robust)
+
+logit adl1 mage1 mwht i.mmar1 i.medu minc1 mnch amar asee atlk aliv fmedu ///
+  if cfem == 1, vce(robust)
+
+logit adl1 mage1 mwht i.mmar1 i.medu minc1 mnch amar asee atlk aliv mledu ///
+  if cfem == 1, vce(robust)
