@@ -24,6 +24,17 @@ corr dep1 adl1 aedu
 corr mage1 mwhy mmr1-mmr3 med1-med3 minc1 
 corr mnch afem amar aliv asee atlk aedu
 
+recode aedu (0 = 0) (0.01/0.99 = 1) (1 = 2), gen(cedu)
+
+table medu, c(mean dep1 mean adl1)
+table cedu, c(mean dep1 mean adl1)
+
+table medu if adl1 == 0, c(freq mean adl2)
+table cedu if adl1 == 0, c(freq mean adl2)
+
+table medu if adl1 == 1, c(freq mean adl2)
+table cedu if adl1 == 1, c(freq mean adl2)
+
 
 *** Regression models (Table 2)
 reg dep1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv aedu, ///
@@ -84,41 +95,41 @@ logit adl1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv nedu
 
 * 3. interactions
 reg dep1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
-  aedu i.mwht#c.aedu
+  aedu i.mwht#c.aedu, vce(robust)
   
 reg dep1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
-  aedu i.medu#c.aedu
+  aedu i.medu#c.aedu, vce(robust)
   
 reg dep1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
-  aedu c.mnch#c.aedu
+  aedu c.mnch#c.aedu, vce(robust)
   
 reg dep1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
-  aedu c.asee#c.aedu
+  aedu c.asee#c.aedu, vce(robust)
   
 reg dep1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
-  aedu c.atlk#c.aedu
+  aedu c.atlk#c.aedu, vce(robust)
   
 reg dep1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
-  aedu c.aliv#c.aedu
+  aedu c.aliv#c.aedu, vce(robust)
   
 
 logit adl1 mage1 i.mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
-  aedu i.mwht#c.aedu
+  aedu i.mwht#c.aedu, vce(robust)
 
 logit adl1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
-  aedu i.medu#c.aedu
+  aedu i.medu#c.aedu, vce(robust)
   
 logit adl1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
-  aedu c.mnch#c.aedu
+  aedu c.mnch#c.aedu, vce(robust)
   
 logit adl1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
-  aedu c.asee#c.aedu
+  aedu c.asee#c.aedu, vce(robust)
   
 logit adl1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
-  aedu c.atlk#c.aedu
+  aedu c.atlk#c.aedu, vce(robust)
   
 logit adl1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
-  aedu c.aliv#c.aedu
+  aedu c.aliv#c.aedu, vce(robust)
 
 
 * 4. collinearity diagnostics
@@ -132,3 +143,30 @@ logit adl1 i.medu
 logit adl1 i.medu aedu
 logit adl1 i.medu aedu minc1 
 
+
+* 6. check for predictors of improvement or decline in health
+logit adl2 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
+  aedu if adl1 == 0, vce(robust)
+  
+logit adl2 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
+  aedu if adl1 == 1, vce(robust)
+  
+  
+* 7. check sex composition measure
+recode afem (0 = 0) (0.01/0.99 = 1) (1 = 2), gen(cfem)
+
+reg dep1 mage1 mwht i.mmar1 i.medu minc1 mnch i.cfem amar asee atlk aliv ///
+  aedu, vce(robust)
+
+reg dep2 mage1 mwht i.mmar1 i.medu minc1 mnch i.cfem amar asee atlk aliv ///
+  aedu dep1 if t2nm, vce(robust)
+  
+logit adl1 mage1 mwht i.mmar1 i.medu minc1 mnch i.cfem amar asee atlk aliv ///
+  aedu, vce(robust)
+
+logit adl2 mage1 mwht i.mmar1 i.medu minc1 mnch i.cfem amar asee atlk aliv ///
+  aedu adl1 if t2nm, vce(robust)
+  
+  
+  
+* 8. check for difference in highest educated son vs highest educated daughter
