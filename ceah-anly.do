@@ -4,7 +4,7 @@
 
 *** Set working directory and load data
 cd ~/dropbox/research/hlthineq/mgah/ceah/ceah-work
-use ceah-data, replace
+use ceah-mi-data, replace
 
 
 *** Descriptive statistics (Table 1)
@@ -12,9 +12,9 @@ tab mmar1, gen(mmr)
 tab medu, gen(med)
 
 foreach x of varlist dep1 dep2 adl1 adl2 mage1 mwht mmr1-mmr3 med1-med4 ///
-  minc1 mnch afem amar aliv asee atlk aedu {
+  minc1 mnch afem amar aliv asee atlk astr aclo addp acre agtm agvm aedu {
   qui sum `x'
-  dis "`x'  " %5.2f r(mean) "  " %5.2f r(sd) "  " %2.0f r(min) "-" %2.0f r(max)
+  dis "`x'   " %5.2f r(mean) "  " %5.2f r(sd) "  " %2.0f r(min) "-" %2.0f r(max)
 }
 
 
@@ -37,15 +37,43 @@ table cedu if adl1 == 1, c(freq mean adl2)
 
 
 *** Regression models (Table 2)
-reg dep1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv aedu, ///
-  vce(robust)
+mi est, post: reg dep1 mage1 mwht i.mmar1 i.medu minc1, vce(robust)
 eststo dep1
+
+mi est, post: reg dep1 mage1 mwht i.mmar1 i.medu minc1 aedu, vce(robust)
+eststo dep2
+
+mi est, post: reg dep1 mage1 mwht i.mmar1 i.medu minc1 aedu mnch afem amar ///
+  aliv asee, vce(robust)
+eststo dep3
+
+mi est, post: reg dep1 mage1 mwht i.mmar1 i.medu minc1 aedu mnch afem amar ///
+  aliv asee addp aclo astr agtm agvm, vce(robust)
+eststo dep4
+
+
+
+mi est, post: logit adl1 mage1 mwht i.mmar1 i.medu minc1, vce(robust)
+eststo adl1
+
+mi est, post: logit adl1 mage1 mwht i.mmar1 i.medu minc1 aedu, vce(robust)
+eststo adl2
+
+mi est, post: logit adl1 mage1 mwht i.mmar1 i.medu minc1 aedu mnch afem amar ///
+  aliv asee, vce(robust)
+eststo adl3
+
+mi est, post: logit adl1 mage1 mwht i.mmar1 i.medu minc1 aedu mnch afem amar ///
+  aliv asee addp aclo astr agtm agvm acre, vce(robust)
+eststo adl4
+
+
 
 reg dep2 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
   aedu dep1 if t2nm, vce(robust)
 eststo dep2
   
-logit adl1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
+mi est: logit adl1 mage1 mwht i.mmar1 i.medu minc1 mnch afem amar asee atlk aliv ///
   aedu, vce(robust)
 eststo adl1
 
