@@ -41,6 +41,8 @@ recode e2 (5 = 0), gen(adl1)
 recode got_ gave_ gotsick gotcomf (5 = 0) (8 9 9999 = .), ///
   gen(cgtm cgvm csck ccmf)
 rename (mdrinkdr) (cddp)
+gen ccre = (csck == 1 | ccmf == 1)
+replace ccre = . if mi(csck) & mi(ccmf)
 
 lab var mid   "mother id"
 lab var cid   "child id"
@@ -57,6 +59,7 @@ lab var cgvm  "child received money"
 lab var cddp  "child drink/drug problem"
 lab var csck  "child provided help when sick"
 lab var ccmf  "child provided comfort"
+lab var ccre  "child provided help or comfort"
 lab var mnch  "mother # children"
 lab var mage1 "mother age 1"
 lab var mmar1 "mother marital status 1"
@@ -71,7 +74,7 @@ tab csck ccmf, m
 
 *** Keep analysis variables
 order mid cid cfem cedu cmar cliv csee ctlk cstr cclo mnch mage1 mmar1 mwht ///
-  medu minc1 cgtm cgvm cddp csck ccmf srh1 dep1 adl1
+  medu minc1 cgtm cgvm cddp csck ccmf ccre srh1 dep1 adl1
 keep mid-adl1
 tempfile d1
 save `d1', replace
@@ -110,7 +113,7 @@ egen nedu  = min(cedu), by(mid)
 egen fmedu = mean(cedu) if cfem == 1, by(mid)
 egen mledu = mean(cedu) if cfem == 0, by(mid)
 
-foreach x in fem mar see tlk liv str clo gtm gvm ddp {
+foreach x in fem mar see tlk liv str clo gtm gvm ddp cre {
   egen a`x' = mean(c`x'), by(mid)
 }
 
@@ -130,20 +133,21 @@ lab var aclo  "avg closeness"
 lab var agtm  "pr of children received money from"
 lab var agvm  "pr of children gave money to"
 lab var addp  "pr of children drink/drug problem"
-
+lab var acre  "pr of children provided help or comfort"
 
 *** Prepare mother data for analysis
 egen pone = tag(mid)
 keep if pone
-order mid t2 mnch mage1 mmar1 minc1 mwht medu cgtm cgvm cddp mcre srh1 srh2 ///
-  dep1 dep2 adl1 adl2 aedu xedu nedu fmedu mledu afem amar asee atlk aliv
-keep mid-aliv
-
-*** Saving non-imputed data
-save ceah-data, replace
+order mid t2 mnch mage1 mmar1 minc1 mwht medu srh1 srh2 dep1 dep2 adl1 adl2 ///
+  aedu xedu nedu fmedu mledu afem amar asee atlk aliv astr aclo agtm agvm   ///
+  addp acre
+keep mid-acre
 
 *** Running multiple imputation for missing wave 1 measures
 mi set wide
-mi reg imp mage1 mmar1 minc1 mwht medu cgtm cgvm cddp mcre srh1 srh2 dep1 ///
-  dep2 adl1 adl2 amar
-mi imp chain (mlogit) mmar1 (ologit) medu (logit) mwht (regress) mage1 minc1 
+mi reg imp mage1 mmar1 minc1 mwht medu srh1 srh2 dep1 dep2 adl1 adl2 amar ///
+  astr agtm agvm acre
+mi imp chain (mlogit) mmar1 (ologit) medu srh1 srh2 (logit) mwht adl1 adl2  ///
+  (regress) mage1 minc1 dep1 dep2 amar astr agtm agvm acre = mnch aedu xedu ///
+  nedu afem asee atlk aliv aclo addp, add(20) augment rseed(91169)
+save ceah-mi-data, replace
