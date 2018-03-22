@@ -16,6 +16,8 @@ rename (LSUID kidid) (mid cid)
 *** Children's characteristics
 rename (sex) (cfem)
 recode educat (9 888 9997 9999 = .) (1/5 = 0) (6 7 = 1), gen(cedu)
+recode educat (9 888 9997 9999 = .) (1 = 8) (2 = 10) (3 = 12) (4 5 = 14) ///
+  (6 = 16) (7 = 19), gen(csch)
 recode x141 (1 2 = 1) (3/6 = 0) (9 = .), gen(cmar)
 recode within2 (888 9997 9998 9999 = .), gen(cliv)
 recode freqsee freqtalk (7 = 0) (6 = 1) (5 = 2) (4 = 3) (3 = 4) (2 = 5) ///
@@ -37,29 +39,17 @@ recode e8a e8b e8c e8d e8e e8f e8g (9 = .)
 alpha e8a e8b e8c e8d e8e e8f e8g, gen(dep1)
 recode e2 (5 = 0), gen(adl1)
 
-*** Mediators
-recode got_ gave_ gotsick gotcomf (5 = 0) (8 9 9999 = .), ///
-  gen(cgtm cgvm csck ccmf)
-rename (mdrinkdr) (cddp)
-gen ccre = (csck == 1 | ccmf == 1)
-replace ccre = . if mi(csck) & mi(ccmf)
-
 lab var mid   "mother id"
 lab var cid   "child id"
 lab var cfem  "child female"
 lab var cedu  "child BA+"
+lab var csch  "child years schooling"
 lab var cmar  "child married"
 lab var cliv  "child live within 2 hours"
 lab var csee  "child frequency visit"
 lab var ctlk  "child frequency talk"
 lab var cstr  "child strain"
 lab var cclo  "child closeness"
-lab var cgtm  "child got money"
-lab var cgvm  "child received money"
-lab var cddp  "child drink/drug problem"
-lab var csck  "child provided help when sick"
-lab var ccmf  "child provided comfort"
-lab var ccre  "child provided help or comfort"
 lab var mnch  "mother # children"
 lab var mage1 "mother age 1"
 lab var mmar1 "mother marital status 1"
@@ -70,11 +60,9 @@ lab var srh1  "mother srh 1"
 lab var dep1  "mother depression 1 (a = 0.78)"
 lab var adl1  "mother adl 1"
 
-tab csck ccmf, m
-
 *** Keep analysis variables
-order mid cid cfem cedu cmar cliv csee ctlk cstr cclo mnch mage1 mmar1 mwht ///
-  medu minc1 cgtm cgvm cddp csck ccmf ccre srh1 dep1 adl1
+order mid cid cfem cedu csch cmar cliv csee ctlk cstr cclo mnch mage1 mmar1 ///
+  mwht medu minc1 srh1 dep1 adl1
 keep mid-adl1
 tempfile d1
 save `d1', replace
@@ -108,19 +96,21 @@ drop _merge
 *** Generate children context measures
 egen aedu  = mean(cedu), by(mid)
 egen xedu  = max(cedu), by(mid)
-egen nedu  = min(cedu), by(mid)
+egen asch  = mean(csch), by(mid)
+egen xsch  = max(csch), by(mid)
 
 egen fmedu = mean(cedu) if cfem == 1, by(mid)
 egen mledu = mean(cedu) if cfem == 0, by(mid)
 
-foreach x in fem mar see tlk liv str clo gtm gvm ddp cre {
+foreach x in fem mar see tlk liv str clo {
   egen a`x' = mean(c`x'), by(mid)
 }
 
 lab var t2    "in T2"
 lab var aedu  "pr of children with BA+"
 lab var xedu  "at least one child with BA+"
-lab var nedu  "all children with BA+"
+lab var asch  "avg children years of schooling"
+lab var xsch  "max children years of schooling"
 lab var fmedu "pr of daughters with BA+"
 lab var mledu "pr of sons with BA+"
 lab var afem  "pr of children female"
@@ -130,24 +120,19 @@ lab var atlk  "avg frequenc of talk"
 lab var aliv  "pr of children live within 2 hours"
 lab var astr  "avg strain"
 lab var aclo  "avg closeness"
-lab var agtm  "pr of children received money from"
-lab var agvm  "pr of children gave money to"
-lab var addp  "pr of children drink/drug problem"
-lab var acre  "pr of children provided help or comfort"
 
 *** Prepare mother data for analysis
 egen pone = tag(mid)
 keep if pone
 order mid t2 mnch mage1 mmar1 minc1 mwht medu srh1 srh2 dep1 dep2 adl1 adl2 ///
-  aedu xedu nedu fmedu mledu afem amar asee atlk aliv astr aclo agtm agvm   ///
-  addp acre
-keep mid-acre
+  aedu xedu asch xsch fmedu mledu afem amar asee atlk aliv astr aclo 
+keep mid-aclo
+keep if !mi(dep1, adl1)
 
 *** Running multiple imputation for missing wave 1 measures
 mi set wide
-mi reg imp mage1 mmar1 minc1 mwht medu srh1 srh2 dep1 dep2 adl1 adl2 amar ///
-  astr agtm agvm acre
-mi imp chain (mlogit) mmar1 (ologit) medu srh1 srh2 (logit) mwht adl1 adl2  ///
-  (regress) mage1 minc1 dep1 dep2 amar astr agtm agvm acre = mnch aedu xedu ///
-  nedu afem asee atlk aliv aclo addp, add(20) augment rseed(91169)
+mi reg imp minc1 mwht medu srh1 srh2 dep2 adl2 astr
+mi imp chain (ologit) medu srh1 srh2 (logit) mwht adl2 (regress) minc1 dep2 ///
+  astr = mnch mage1 i.mmar1 dep1 adl1 aedu xedu asch xsch afem amar asee    ///
+  atlk aliv aclo, add(20) augment rseed(91169)
 save ceah-mi-data, replace
