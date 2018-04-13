@@ -17,11 +17,13 @@ foreach x of varlist aedu asch xedu xsch {
   qui eststo a2`x': logit adl2 adl1 `x', vce(robust)
 }
 
-esttab d1 d2 d3 d4 d5 d6 d7 d8, b(%5.3f) se(%5.3f) star r2(%5.3f) aic(%5.3f) ///
-  bic(%5.3f) nogap nomti title("Table 1: Depressive symptoms and ACE")
+esttab d1aedu d1asch d1xedu d1xsch d2aedu d2asch d2xedu d2xsch, b(%5.3f) ///
+  se(%5.3f) star r2(%5.3f) aic(%5.3f) bic(%5.3f) nogap nomti ///
+  title("Table 1: Depressive symptoms and ACE")
   
-esttab a1 a2 a3 a4 a5 a6 a7 a8, eform b(%5.3f) se(%5.3f) star pr2(%5.3f) ///
-  aic(%5.3f) bic(%5.3f) title("Table 1: Funtional limitations and ACE")  ///
+esttab a1aedu a1asch a1xedu a1xsch a2aedu a2asch a2xedu a2xsch, eform ///
+  b(%5.3f) se(%5.3f) star pr2(%5.3f) aic(%5.3f) bic(%5.3f) ///
+  title("Table 1: Funtional limitations and ACE")  ///
   nogap nomti 
   
   
