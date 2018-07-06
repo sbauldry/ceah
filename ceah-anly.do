@@ -4,27 +4,26 @@
 
 *** Set working directory and load data
 cd ~/dropbox/research/hlthineq/mgah/ceah/ceah-work
-use ceah-mi-data, replace
+use ceah-data, replace
 
 
-*** Examining different measures of adult children's education (ACE)
+*** Examining different measures of adult children's education
 eststo clear
-foreach x of varlist aedu asch xedu xsch {
-  qui eststo d1`x': reg dep1 `x', vce(robust)
-  qui eststo d2`x': reg dep2 dep1 `x', vce(robust)
+eststo d1: reg dep1 adeg2 adeg3, vce(robust)
+eststo d2: reg dep1 asch, vce(robust)
+eststo d3: reg dep1 xdeg, vce(robust)
+eststo d4: reg dep1 xsch, vce(robust)
+esttab d1 d2 d3 d4, b(%5.3f) se(%5.3f) star r2(%5.3f) bic(%5.3f)
 
-  qui eststo a1`x': logit adl1 `x', vce(robust)
-  qui eststo a2`x': logit adl2 adl1 `x', vce(robust)
-}
+eststo clear
+eststo a1: logit adl1 adeg2 adeg3, vce(robust)
+eststo a2: logit adl1 asch, vce(robust)
+eststo a3: logit adl1 xdeg, vce(robust)
+eststo a4: logit adl1 xsch, vce(robust)
+esttab a1 a2 a3 a4, b(%5.3f) se(%5.3f) star pr2(%5.3f) bic(%5.3f) eform
 
-esttab d1aedu d1asch d1xedu d1xsch d2aedu d2asch d2xedu d2xsch, b(%5.3f) ///
-  se(%5.3f) star r2(%5.3f) aic(%5.3f) bic(%5.3f) nogap nomti ///
-  title("Table 1: Depressive symptoms and ACE")
-  
-esttab a1aedu a1asch a1xedu a1xsch a2aedu a2asch a2xedu a2xsch, eform ///
-  b(%5.3f) se(%5.3f) star pr2(%5.3f) aic(%5.3f) bic(%5.3f) ///
-  title("Table 1: Funtional limitations and ACE")  ///
-  nogap nomti 
+
+
   
   
 *** Correlations

@@ -16,6 +16,7 @@ rename (LSUID kidid) (mid cid)
 *** Children's characteristics
 rename (sex) (cfem)
 recode educat (9 888 9997 9999 = .) (1/5 = 0) (6 7 = 1), gen(cedu)
+recode educat (9 888 9997 9999 = .) (1 2 = 1) (3 4 5 = 2) (6 7 = 3), gen(cdeg)
 recode educat (9 888 9997 9999 = .) (1 = 8) (2 = 10) (3 = 12) (4 5 = 14) ///
   (6 = 16) (7 = 19), gen(csch)
 recode x141 (1 2 = 1) (3/6 = 0) (9 = .), gen(cmar)
@@ -43,6 +44,7 @@ lab var mid   "mother id"
 lab var cid   "child id"
 lab var cfem  "child female"
 lab var cedu  "child BA+"
+lab var cdeg  "child degree"
 lab var csch  "child years schooling"
 lab var cmar  "child married"
 lab var cliv  "child live within 2 hours"
@@ -61,8 +63,8 @@ lab var dep1  "mother depression 1 (a = 0.78)"
 lab var adl1  "mother adl 1"
 
 *** Keep analysis variables
-order mid cid cfem cedu csch cmar cliv csee ctlk cstr cclo mnch mage1 mmar1 ///
-  mwht medu minc1 srh1 dep1 adl1
+order mid cid cfem cedu cdeg csch cmar cliv csee ctlk cstr cclo mnch mage1 ///
+  mmar1 mwht medu minc1 srh1 dep1 adl1
 keep mid-adl1
 tempfile d1
 save `d1', replace
@@ -96,6 +98,13 @@ drop _merge
 *** Generate children context measures
 egen aedu  = mean(cedu), by(mid)
 egen xedu  = max(cedu), by(mid)
+
+tab cdeg, gen(cdeg)
+egen adeg1 = mean(cdeg1), by(mid)
+egen adeg2 = mean(cdeg2), by(mid)
+egen adeg3 = mean(cdeg3), by(mid)
+egen xdeg  = max(cdeg), by(mid)
+
 egen asch  = mean(csch), by(mid)
 egen xsch  = max(csch), by(mid)
 
@@ -109,6 +118,10 @@ foreach x in fem mar see tlk liv str clo {
 lab var t2    "in T2"
 lab var aedu  "pr of children with BA+"
 lab var xedu  "at least one child with BA+"
+lab var adeg1 "pr children with less than high school"
+lab var adeg2 "pr children with high school degree but less than college"
+lab var adeg3 "pr children with college degree or higher"
+lab var xdeg  "max children degrees"
 lab var asch  "avg children years of schooling"
 lab var xsch  "max children years of schooling"
 lab var fmedu "pr of daughters with BA+"
@@ -124,15 +137,10 @@ lab var aclo  "avg closeness"
 *** Prepare mother data for analysis
 egen pone = tag(mid)
 keep if pone
-order mid t2 mnch mage1 mmar1 minc1 mwht medu srh1 srh2 dep1 dep2 adl1 adl2 ///
-  aedu xedu asch xsch fmedu mledu afem amar asee atlk aliv astr aclo 
+order mid t2 mnch mage1 mmar1 minc1 mwht medu srh1 srh2 dep1 dep2 adl1 adl2  ///
+  aedu xedu asch xsch adeg1 adeg2 adeg3 xdeg fmedu mledu afem amar asee atlk ///
+  aliv astr aclo 
 keep mid-aclo
 keep if !mi(dep1, adl1)
-
-*** Running multiple imputation for missing wave 1 measures
-mi set wide
-mi reg imp minc1 mwht medu srh1 srh2 dep2 adl2 astr
-mi imp chain (ologit) medu srh1 srh2 (logit) mwht adl2 (regress) minc1 dep2 ///
-  astr = mnch mage1 i.mmar1 dep1 adl1 aedu xedu asch xsch afem amar asee    ///
-  atlk aliv aclo, add(20) augment rseed(91169)
-save ceah-mi-data, replace
+keep if !mi(mwht, medu, astr)
+save ceah-data, replace
