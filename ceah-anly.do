@@ -9,23 +9,27 @@ use ceah-data, replace
 
 *** Examining different measures of adult children's education
 eststo clear
-eststo d1: reg dep1 adeg2 adeg3, vce(robust)
-eststo d2: reg dep1 asch, vce(robust)
-eststo d3: reg dep1 xdeg, vce(robust)
-eststo d4: reg dep1 xsch, vce(robust)
-esttab d1 d2 d3 d4, b(%5.3f) se(%5.3f) star r2(%5.3f) bic(%5.3f)
+foreach x of varlist adeg3 asch xdeg xsch {
+  eststo d`x': reg dep1 `x', vce(robust)
+  logit adl1 `x', vce(robust)
+  local pr2`x' = e(r2_p)
+  qui estat ic
+  mat s = r(S)
+  local bic`x' = s[1,6]
+  eststo a`x': margins, dydx(*) post
+}
 
-eststo clear
-eststo a1: logit adl1 adeg2 adeg3, vce(robust)
-eststo a2: logit adl1 asch, vce(robust)
-eststo a3: logit adl1 xdeg, vce(robust)
-eststo a4: logit adl1 xsch, vce(robust)
-esttab a1 a2 a3 a4, b(%5.3f) se(%5.3f) star pr2(%5.3f) bic(%5.3f) eform
-
-
-
+esttab dadeg3 dasch dxdeg dxsch, b(%5.2f) se(%5.2f) r2(%5.2f) bic(%5.2f) ///
+  star nonum nogap nomti
   
+esttab aadeg3 aasch axdeg axsch, b(%5.2f) se(%5.2f) star nonum nogap nomti
+dis "pr2: " %5.2f `pr2adeg3' " " %5.2f `pr2asch' " " %5.2f `pr2xdeg' ///
+  " " %5.2f `pr2xsch'
   
+dis "BIC: " %5.2f `bicadeg3' " " %5.2f `bicasch' " " %5.2f `bicxdeg' ///
+  " " %5.2f `bicxsch'
+
+
 *** Correlations
 qui tab mmar1, gen(mm)
 corr aedu asch xedu xsch
