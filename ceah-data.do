@@ -27,7 +27,7 @@ recode mtensenw mclosenw (888 9997 9998 9999 = .), gen(cstr cclo)
 
 *** Mother's characteristics
 rename (numalive) (mnch)
-recode f1 (1 = 1) (4 6 = 2) (5 = 3), gen(mmar1)
+recode f1 (1 = 1) (4 = 2) (5 = 3) (6 = .), gen(mmar1)
 gen mage1 = 2002 - g1y
 recode mastrace (0 = 1) (1/23 = 0), gen(mwht)
 recode g3 (9 = .) (1 2 = 0) (3 = 1) (4 5 = 2) (6 7 = 3), gen(medu)
@@ -142,5 +142,5 @@ order mid t2 mnch mage1 mmar1 minc1 mwht medu srh1 srh2 dep1 dep2 adl1 adl2  ///
   aliv astr aclo 
 keep mid-aclo
 keep if !mi(dep1, adl1)
-keep if !mi(mwht, medu, astr)
+keep if !mi(mwht, medu, astr, mmar1)
 save ceah-data, replace

@@ -23,6 +23,7 @@ esttab dadeg3 dasch dxdeg dxsch, b(%5.2f) se(%5.2f) r2(%5.2f) bic(%5.2f) ///
   star nonum nogap nomti
   
 esttab aadeg3 aasch axdeg axsch, b(%5.2f) se(%5.2f) star nonum nogap nomti
+
 dis "pr2: " %5.2f `pr2adeg3' " " %5.2f `pr2asch' " " %5.2f `pr2xdeg' ///
   " " %5.2f `pr2xsch'
   
@@ -35,6 +36,9 @@ qui tab mmar1, gen(mm)
 corr aedu asch xedu xsch
 corr aedu asch mage1 mwht medu mnch mm1 mm2 mm3
 corr aedu asch afem amar aliv asee atlk astr aclo
+
+
+
 
 
 *** Models for depressive symptoms and ADL
