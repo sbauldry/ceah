@@ -16,6 +16,8 @@ foreach x of varlist adeg3 asch xdeg xsch {
   qui estat ic
   mat s = r(S)
   local bic`x' = s[1,6]
+  qui lroc
+  local roc`x' = r(area)
   eststo a`x': margins, dydx(*) post
 }
 
@@ -29,7 +31,11 @@ dis "pr2: " %5.2f `pr2adeg3' " " %5.2f `pr2asch' " " %5.2f `pr2xdeg' ///
   
 dis "BIC: " %5.2f `bicadeg3' " " %5.2f `bicasch' " " %5.2f `bicxdeg' ///
   " " %5.2f `bicxsch'
+  
+dis "ROC: " %5.2f `rocadeg3' " " %5.2f `rocasch' " " %5.2f `rocxdeg' ///
+  " " %5.2f `rocxsch'
 
+ 
 
 *** Correlations
 qui tab mmar1, gen(mm)
@@ -38,33 +44,35 @@ corr aedu asch mage1 mwht medu mnch mm1 mm2 mm3
 corr aedu asch afem amar aliv asee atlk astr aclo
 
 
-
-
-
 *** Models for depressive symptoms and ADL
-preserve
-keep if !mi(mwht, medu, astr)
 eststo clear
-qui eststo d1: reg dep1 aedu, vce(robust)
-qui eststo d2: reg dep1 aedu mage1 mwht i.mmar1 i.medu, vce(robust)
-qui eststo d3: reg dep1 aedu mage1 mwht i.mmar1 i.medu mnch afem amar aliv ///
-  asee atlk astr aclo, vce(robust)
-qui eststo d4: reg dep2 dep1 aedu mage1 mwht i.mmar1 i.medu mnch afem amar ///
-  aliv asee atlk astr aclo, vce(robust)
+eststo d1: reg dep1 adeg3, vce(robust)
+eststo d2: reg dep1 adeg3 mage1 mwht i.mmar1 i.medu mnch afem amar, vce(robust)
+eststo d3: reg dep1 adeg3 mage1 mwht i.mmar1 i.medu mnch afem amar aliv asee ///
+  atlk aclo astr, vce(robust)
 
-qui eststo a1: logit adl1 aedu, vce(robust)
-qui eststo a2: logit adl1 aedu mage1 mwht i.mmar1 i.medu, vce(robust)
-qui eststo a3: logit adl1 aedu mage1 mwht i.mmar1 i.medu mnch afem amar aliv ///
-  asee atlk astr aclo, vce(robust)
-qui eststo a4: logit adl2 adl1 aedu mage1 mwht i.mmar1 i.medu mnch afem amar ///
-  aliv asee atlk astr aclo, vce(robust)
+esttab d1 d2 d3 using ~/desktop/dt.csv, replace b(%5.2f) se(%5.2f) star ///
+  r2(%5.2f) nobase nogap nomti 
   
-esttab d1 d2 d3 d4, b(%5.3f) se(%5.3f) star r2(%5.3f) aic(%5.3f) ///
-  bic(%5.3f) nobase nogap nomti title("Table 2: Depressive symptoms and ACE")
+  
+logit adl1 adeg3, vce(robust)
+eststo a1: margins, dydx(*) post
 
-esttab a1 a2 a3 a4, eform b(%5.3f) se(%5.3f) star r2(%5.3f) aic(%5.3f) ///
-  bic(%5.3f) nobase nogap nomti title("Table 2: Functional limitations and ACE")
-restore
+logit adl1 adeg3 mage1 mwht i.mmar1 i.medu mnch afem amar, vce(robust)
+eststo a2: margins, dydx(*) post
+
+logit adl1 adeg3 mage1 mwht i.mmar1 i.medu mnch afem amar aliv asee ///
+  atlk aclo astr, vce(robust)
+eststo a3: margins, dydx(*) post
+
+esttab a1 a2 a3 using ~/desktop/at.csv, replace b(%5.2f) se(%5.2f) star ///
+  nobase nogap nomti 
+  
+
+*** Coefficient plots
+
+  
+  
 
 
 *** Predicted values for depressive symptoms and ADL
