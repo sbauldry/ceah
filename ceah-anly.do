@@ -1,6 +1,6 @@
 *** Purpose: analysis of children's education and mother's health
 *** Author: S Bauldry
-*** Date: February 1, 2018
+*** Date: September 26, 2018
 
 *** Set working directory and load data
 cd ~/dropbox/research/hlthineq/mgah/ceah/ceah-work
@@ -36,7 +36,6 @@ dis "ROC: " %5.2f `rocadeg3' " " %5.2f `rocasch' " " %5.2f `rocxdeg' ///
   " " %5.2f `rocxsch'
 
  
-
 *** Correlations
 qui tab mmar1, gen(mm)
 corr aedu asch xedu xsch
@@ -45,57 +44,128 @@ corr aedu asch afem amar aliv asee atlk astr aclo
 
 
 *** Models for depressive symptoms and ADL
+* posting estimates for plotting
 eststo clear
-eststo d1: reg dep1 adeg3, vce(robust)
-eststo d2: reg dep1 adeg3 mage1 mwht i.mmar1 i.medu mnch afem amar, vce(robust)
-eststo d3: reg dep1 adeg3 mage1 mwht i.mmar1 i.medu mnch afem amar aliv asee ///
-  atlk aclo astr, vce(robust)
+postutil clear
+postfile cf v m e se using ~/desktop/d1, replace
 
+local m1 adeg3
+local m2 mage1 mwht i.mmar1 i.medu mnch afem amar
+local m3 aliv asee atlk aclo astr
+
+eststo d1: reg dep1 `m1', vce(robust)
+mat t1 = r(table)
+post cf (1) (1) (t1[1,1]) (t1[2,1])
+
+eststo d2: reg dep1 `m1' `m2', vce(robust)
+mat t2 = r(table)
+post cf (1) (2) (t2[1,1]) (t2[2,1])
+
+eststo d3: reg dep1 `m1' `m2' `m3', vce(robust)
+mat t3 = r(table)
+post cf (1) (3) (t3[1,1]) (t3[2,1])
+
+logit adl1 `m1', vce(robust)
+eststo a1: margins, dydx(*)
+mat t4 = r(table)
+post cf (2) (1) (t4[1,1]) (t4[2,1])
+
+logit adl1 `m1' `m2', vce(robust)
+eststo a2: margins, dydx(*)
+mat t5 = r(table)
+post cf (2) (2) (t5[1,1]) (t5[2,1])
+
+logit adl1 `m1' `m2' `m3', vce(robust)
+eststo a3: margins, dydx(*)
+mat t6 = r(table)
+post cf (2) (3) (t6[1,1]) (t6[2,1])
+
+postclose cf
+
+* tables of coefficients for appendix
 esttab d1 d2 d3 using ~/desktop/dt.csv, replace b(%5.2f) se(%5.2f) star ///
   r2(%5.2f) nobase nogap nomti 
   
-  
-logit adl1 adeg3, vce(robust)
-eststo a1: margins, dydx(*) post
-
-logit adl1 adeg3 mage1 mwht i.mmar1 i.medu mnch afem amar, vce(robust)
-eststo a2: margins, dydx(*) post
-
-logit adl1 adeg3 mage1 mwht i.mmar1 i.medu mnch afem amar aliv asee ///
-  atlk aclo astr, vce(robust)
-eststo a3: margins, dydx(*) post
-
 esttab a1 a2 a3 using ~/desktop/at.csv, replace b(%5.2f) se(%5.2f) star ///
   nobase nogap nomti 
+
+* coefficient plots
+preserve
+use ~/desktop/d1, replace
+
+gen ub = e + 1.96*se
+gen lb = e - 1.96*se
+
+twoway (rspike ub lb m if v == 1, hor xline(0, lc(black) lp(dash))) ///
+  (scatter m e if v == 1), legend(off) xtit("unstandardized estimate") ///
+  ylab(1 "M1" 2 "M2" 3 "M3", angle(h) grid gstyle(dot)) ///
+  ytit(" ") xlab(, grid gstyle(dot)) tit("Depressive Symptoms") ///
+  saving(~/desktop/g1, replace)
   
+twoway (rspike ub lb m if v == 2, hor xline(0, lc(black) lp(dash))) ///
+  (scatter m e if v == 2), legend(off) xtit("average marginal effect") ///
+  ylab(1 "M1" 2 "M2" 3 "M3", angle(h) grid gstyle(dot)) ///
+  ytit(" ") xlab(, grid gstyle(dot)) tit("Activity Limitation") ///
+  saving(~/desktop/g2, replace)
 
-*** Coefficient plots
+graph combine ~/desktop/g1.gph ~/desktop/g2.gph
+graph export ~/desktop/ceah-ms-fig2.pdf
+restore
 
+* predicted values
+gen pipe = "|"
+gen radeg3 = adeg3 + rnormal(0,0.005)
+gen where1 = 1
+gen where2 = 0
+
+qui reg dep1 adeg3 mage1 mwht i.mmar1 i.medu mnch afem amar aliv asee atlk ///
+  aclo astr, vce(robust)
+margins, at(adeg3 = (0(0.1)1))
+marginsplot , ytit("predicted value") ylab(1(0.2)2, angle(h) ///
+  grid gstyle(dot)) xlab(, grid gstyle(dot)) recastci(rarea) ///
+  ciopts(fintensity(30) lwidth(none)) title("Depressive Symptoms") ///
+  xtit("proportion children with BA+") addplot(scatter where1 radeg3, ///
+  ms(none) mlabel(pipe) mlabcol(red) mlabpos(0) xlab(0(.1)1) ///
+  ylab(1(0.2)2) legend(off)) saving(~/desktop/g4, replace)
   
+qui logit adl1 adeg3 mage1 mwht i.mmar1 i.medu mnch afem amar aliv asee atlk ///
+  aclo astr, vce(robust)
+margins, at(adeg3 = (0(0.1)1))
+marginsplot , ytit("predicted probability") ylab(0(0.2)1, angle(h) ///
+  grid gstyle(dot)) xlab(, grid gstyle(dot)) recastci(rarea) ///
+  ciopts(fintensity(30) lwidth(none)) title("Activity Limitation") ///
+  xtit("proportion children with BA+") addplot(scatter where2 radeg3, ///
+  ms(none) mlabel(pipe) mlabcol(red) mlabpos(0) xlab(0(.1)1) ///
+  ylab(0(0.2)1) legend(off)) saving(~/desktop/g5, replace)
   
+graph combine ~/desktop/g4.gph ~/desktop/g5.gph
+graph export ~/desktop/ceah-ms-fig3.pdf
+
+forval i = 1/5 {
+  capture erase ~/desktop/g`i'.gph
+}
 
 
-*** Predicted values for depressive symptoms and ADL
-tempfile g1 g2
-qui reg dep1 aedu mage1 mwht i.mmar1 i.medu mnch afem amar aliv asee atlk ///
-  astr aclo, vce(robust)
-margins , at(aedu = (0(0.1)1))
-marginsplot , ytit("predicted value of symptoms") ylab(1(0.2)2, angle(h) ///
-  grid gstyle(dot)) xlab(, grid gstyle(dot)) recastci(rarea)             ///
-  ciopts(fintensity(30) lwidth(none)) title("Depressive Symptoms")       ///
-  xtit("proportion of children with BA+") saving(`g1')
 
-qui logit adl1 aedu mage1 mwht i.mmar1 i.medu mnch afem amar aliv asee atlk ///
-  astr aclo, vce(robust)
-margins , at(aedu = (0(0.1)1))
-marginsplot , ytit("predicted probability of limitation")                  ///
-  ylab(0(0.1)0.6, angle(h) grid gstyle(dot)) xlab(, grid gstyle(dot))      ///
-  recastci(rarea) ciopts(fintensity(30) lwidth(none))                      ///
-  title("Any Functional Limitation") xtit("proportion of children with BA+") ///
-  saving(`g2')
-  
-graph combine "`g1'" "`g2'"
-graph export ~/desktop/Fig1.pdf, replace
+*** Models for interactions
+local iv adeg3 mage1 mwht i.mmar1 i.medu mnch afem amar aliv asee atlk ///
+  aclo astr
+
+eststo clear
+foreach x in c.aliv c.asee c.atlk c.aclo c.astr {
+  qui eststo: reg dep1 `iv' c.adeg3#`x', vce(robust)
+}
+esttab using ~/desktop/t3.csv, replace b(%9.2f) se(%9.2f) star nomti nogap
+
+eststo clear
+foreach x in c.aliv c.asee c.atlk c.aclo c.astr {
+  qui eststo: logit adl1 `iv' c.adeg3#`x', vce(robust)
+}
+esttab using ~/desktop/t4.csv, replace b(%9.2f) se(%9.2f) star nomti nogap
+
+
+
+
   
 
 *** Auxiliary analyses
