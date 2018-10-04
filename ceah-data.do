@@ -23,7 +23,7 @@ recode x141 (1 2 = 1) (3/6 = 0) (9 = .), gen(cmar)
 recode within2 (888 9997 9998 9999 = .), gen(cliv)
 recode freqsee freqtalk (7 = 0) (6 = 1) (5 = 2) (4 = 3) (3 = 4) (2 = 5) ///
   (1 = 6) (888 9997 9998 9999 = .), gen(csee ctlk)
-recode mtensenw mclosenw (888 9997 9998 9999 = .), gen(cstr cclo)
+recode x22a1_c x21a1_c (0 9 = .), gen(cstr cclo)
 
 *** Mother's characteristics
 rename (numalive) (mnch)
