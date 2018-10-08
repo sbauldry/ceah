@@ -9,7 +9,7 @@ use ceah-data, replace
 
 *** Examining different measures of adult children's education
 eststo clear
-foreach x of varlist adeg3 asch xdeg xsch {
+foreach x of varlist adeg3 asch xedu xsch {
   eststo d`x': reg dep1 `x', vce(robust)
   logit adl1 `x', vce(robust)
   local pr2`x' = e(r2_p)
@@ -21,18 +21,18 @@ foreach x of varlist adeg3 asch xdeg xsch {
   eststo a`x': margins, dydx(*) post
 }
 
-esttab dadeg3 dasch dxdeg dxsch, b(%5.2f) se(%5.2f) r2(%5.2f) bic(%5.2f) ///
+esttab dadeg3 dasch dxedu dxsch, b(%5.2f) se(%5.2f) r2(%5.2f) bic(%5.2f) ///
   star nonum nogap nomti
   
-esttab aadeg3 aasch axdeg axsch, b(%5.2f) se(%5.2f) star nonum nogap nomti
+esttab aadeg3 aasch axedu axsch, b(%5.2f) se(%5.2f) star nonum nogap nomti
 
-dis "pr2: " %5.2f `pr2adeg3' " " %5.2f `pr2asch' " " %5.2f `pr2xdeg' ///
+dis "pr2: " %5.2f `pr2adeg3' " " %5.2f `pr2asch' " " %5.2f `pr2xedu' ///
   " " %5.2f `pr2xsch'
   
-dis "BIC: " %5.2f `bicadeg3' " " %5.2f `bicasch' " " %5.2f `bicxdeg' ///
+dis "BIC: " %5.2f `bicadeg3' " " %5.2f `bicasch' " " %5.2f `bicxedu' ///
   " " %5.2f `bicxsch'
   
-dis "ROC: " %5.2f `rocadeg3' " " %5.2f `rocasch' " " %5.2f `rocxdeg' ///
+dis "ROC: " %5.2f `rocadeg3' " " %5.2f `rocasch' " " %5.2f `rocxedu' ///
   " " %5.2f `rocxsch'
 
  
